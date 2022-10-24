@@ -15,7 +15,7 @@ namespace OauthHandler
             HttpMessageHandler inner)
             : base(inner)
         {
-            Settings = settings;
+            this.settings = settings;
         }
 
         public OauthHandler(
@@ -24,26 +24,26 @@ namespace OauthHandler
 
         protected async Task ValidateToken()
         {
-            if (Token != null && Token.ExpiresAt >= (DateTimeOffset.Now - Settings.TokenExpiryThreshold))
+            if (token != null && token.ExpiresAt >= (DateTimeOffset.Now - settings.TokenExpiryThreshold))
                 return;
 
             try
             {
-                using (var httpClient = new HttpClient { Timeout = Settings.AuthenticationTimeout })
+                using (var httpClient = new HttpClient { Timeout = settings.AuthenticationTimeout })
                 {
                     var parameters = new Dictionary<string, string>
                     {
                         { "grant_type", "client_credentials" },
-                        { "client_id", Settings.ClientId },
-                        { "client_secret", Settings.ClientSecret },
+                        { "client_id", settings.ClientId },
+                        { "client_secret", settings.ClientSecret },
                     };
 
-                    if (!string.IsNullOrWhiteSpace(Settings.Scopes))
-                        parameters.Add("scope", Settings.Scopes);
+                    if (!string.IsNullOrWhiteSpace(settings.Scopes))
+                        parameters.Add("scope", settings.Scopes);
 
                     //Log.Info($"Requesting access token ...");
                     var response = await httpClient.PostAsync(
-                        Settings.TokenEndpoint, 
+                        settings.TokenEndpoint, 
                         new FormUrlEncodedContent(parameters));
                     //Log.Error($"Response Status Code: {response.StatusCode}{(response.IsSuccessStatusCode ? " (Success)" : string.Empty)}");
 
@@ -51,7 +51,7 @@ namespace OauthHandler
 
                     if (response.IsSuccessStatusCode)
                     {
-                        Token = JsonSerializer.Deserialize<TokenResponse>(result);
+                        token = JsonSerializer.Deserialize<TokenResponse>(result);
                         return;
                     }
 
@@ -71,13 +71,12 @@ namespace OauthHandler
             CancellationToken cancellationToken)
         {
             await ValidateToken();
-            request.Headers.Add("Authorization", $"Bearer {Token.AccessToken}");
+            request.Headers.Add("Authorization", $"Bearer {token.AccessToken}");
             return await base.SendAsync(request, cancellationToken);
         }
 
-        public OauthHandlerSettings Settings { get; internal set; }
-        
-        private TokenResponse Token { get; set; }
+        private readonly OauthHandlerSettings settings;
+        private TokenResponse token;
     }
 
     public class OauthHandlerSettings
