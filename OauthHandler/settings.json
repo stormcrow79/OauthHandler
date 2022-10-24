@@ -1,0 +1,9 @@
+{
+  "EndpointUrl": "",
+  "Authentication": {
+    "TokenEndpoint": "",
+    "ClientId": "",
+    "ClientSecret": "",
+    "Scopes": ""
+  }
+}
