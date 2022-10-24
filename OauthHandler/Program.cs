@@ -4,21 +4,21 @@ using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace OauthHandler
 {
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             var settings = LoadSettings();
 
             var client = new HttpClient(
                 new OauthHandler(settings.Authentication));
 
-            var content = client.GetStringAsync(
-                $"{settings.EndpointUrl}/terminology/fhir/CodeSystem?_summary=true")
-                .GetAwaiter().GetResult();
+            var content = await client.GetStringAsync(
+                $"{settings.EndpointUrl}/terminology/fhir/CodeSystem?_summary=true");
 
             Console.WriteLine(content);
         }
