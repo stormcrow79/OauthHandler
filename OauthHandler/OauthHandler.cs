@@ -29,6 +29,7 @@ namespace OauthHandler
 
             try
             {
+                // use a transient HttpClient since connection pooling doesn't add much value for occasional access token requests.
                 using (var httpClient = new HttpClient { Timeout = settings.AuthenticationTimeout })
                 {
                     var parameters = new Dictionary<string, string>
@@ -41,9 +42,11 @@ namespace OauthHandler
                     if (!string.IsNullOrWhiteSpace(settings.Scopes))
                         parameters.Add("scope", settings.Scopes);
 
+                    // TODO: retry failed token requests
+
                     //Log.Info($"Requesting access token ...");
                     var response = await httpClient.PostAsync(
-                        settings.TokenEndpoint, 
+                        settings.TokenEndpoint,
                         new FormUrlEncodedContent(parameters));
                     //Log.Error($"Response Status Code: {response.StatusCode}{(response.IsSuccessStatusCode ? " (Success)" : string.Empty)}");
 
@@ -90,7 +93,7 @@ namespace OauthHandler
         public string Scopes { get; set; }
 
         public TimeSpan AuthenticationTimeout { get; set; } = TimeSpan.FromSeconds(10);
-        
+
         public TimeSpan TokenExpiryThreshold { get; set; } = TimeSpan.FromSeconds(20);
     }
 
